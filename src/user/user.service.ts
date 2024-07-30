@@ -4,11 +4,14 @@ import { Model } from 'mongoose';
 import { UserModel } from './schema/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { log } from 'console';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(UserModel.name) private readonly userModel: Model<UserModel>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<UserModel> {
@@ -25,18 +28,31 @@ export class UsersService {
     return newUser.save();
   }
 
-  async validateUser(username: string, password: string): Promise<UserModel | null> {
+  async validateUser(
+    username: string,
+    password: string,
+  ): Promise<UserModel | null> {
     const user = await this.userModel.findOne({ username });
-    if (user && await bcrypt.compare(password, user.password)) {
+    if (user && (await bcrypt.compare(password, user.password))) {
       return user;
     }
     return null;
   }
 
+  async login(user: any) {
+    const payload = { username: user.username, sub: user.userId };
+    const accessToken = this.jwtService.sign(payload);
+    console.log(user.username, 'done');
+
+    return {
+      username: user.username,
+      access_token: accessToken,
+    };
+  }
+
   async findAll(): Promise<UserModel[]> {
     return this.userModel.find().exec();
   }
-}
 
   // async findOne(id: string): Promise<UserModel> {
   //   const user = await this.userModel.findById(id).exec();

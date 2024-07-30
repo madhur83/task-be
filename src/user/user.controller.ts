@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { LoginDto } from './dto/Login.dto';
+import { LocalAuthGuard } from './local-auth.guard';
 
 @Controller('users')
 export class UserController {
@@ -9,43 +9,45 @@ export class UserController {
 
   @Post('create')
   async create(@Body() createUserDto: CreateUserDto) {
+    console.log('yahaaa ya2', createUserDto)
+
     return this.userService.createUser(createUserDto);
   }
 
+  @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    const { username, password } = loginDto;
-    const user = await this.userService.validateUser(username, password);
-    if (user) {
-      // If user is found and password is correct, return user or a token
-      return { message: 'Login successful', user };
-    } else {
-      // If validation fails
-      return { message: 'Invalid credentials' };
+    async login(@Request() req) {
+      console.log('yahaaa ya', req)
+      return this.userService.login(req.user);
     }
   }
+//   @Post('login')
+//   async login(@Request() body: { username: string; userId: string }) {
+//     const user = { username: body.username, userId: body.userId };
+//     return this.userService.login(user);
+//   }
+// }
 
-  // @Get('')
-  // async findAll(): Promise<UserModel[]> {
-  //   return this.userService.findAll();
-  // }
+// @Get('')
+// async findAll(): Promise<UserModel[]> {
+//   return this.userService.findAll();
+// }
 
-  // @Get(':id')
-  // async findOne(@Param('id') id: string): Promise<UserModel> {
-  //   return this.userService.findOne(id);
-  // }
+// @Get(':id')
+// async findOne(@Param('id') id: string): Promise<UserModel> {
+//   return this.userService.findOne(id);
+// }
 
-  // @Put(':id')
-  // async updateUser(
-  //   @Param('id') id: string,
-  //   @Body('username') username: string,
-  //   @Body('password') password: string,
-  // ): Promise<UserModel> {
-  //   return this.userService.updateUser(id, username, password);
-  // }
+// @Put(':id')
+// async updateUser(
+//   @Param('id') id: string,
+//   @Body('username') username: string,
+//   @Body('password') password: string,
+// ): Promise<UserModel> {
+//   return this.userService.updateUser(id, username, password);
+// }
 
-  // @Delete(':id')
-  // async deleteUser(@Param('id') id: string): Promise<void> {
-  //   return this.userService.deleteUser(id);
-  // }
-}
+// @Delete(':id')
+// async deleteUser(@Param('id') id: string): Promise<void> {
+//   return this.userService.deleteUser(id);
+// }
