@@ -3,14 +3,19 @@ import { Document } from 'mongoose';
 
 export enum TaskStatus {
   PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
 }
 
 @Schema({ collection: 'tasks', timestamps: true })
 export class Task {
+  save() {
+    throw new Error('Method not implemented.');
+  }
   @Prop({ required: true })
-  title: string;
+  username: string;
+
+  @Prop()
+  title?: string;
 
   @Prop()
   description?: string;

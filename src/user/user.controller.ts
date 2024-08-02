@@ -9,18 +9,17 @@ export class UserController {
 
   @Post('create')
   async create(@Body() createUserDto: CreateUserDto) {
-    console.log('yahaaa ya2', createUserDto)
+    console.log('yahaaa ya2', createUserDto);
 
     return this.userService.createUser(createUserDto);
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-    async login(@Request() req) {
-      console.log('yahaaa ya', req)
-      return this.userService.login(req.user);
-    }
+  async login(@Request() req) {
+    return this.userService.login(req.user);
   }
+}
 //   @Post('login')
 //   async login(@Request() body: { username: string; userId: string }) {
 //     const user = { username: body.username, userId: body.userId };

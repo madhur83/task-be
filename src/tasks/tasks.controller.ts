@@ -1,58 +1,70 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   Param,
+  Patch,
   Post,
-  Put,
-  Delete,
+  Query,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { TaskDocument, Task } from './schema/task.schema';
+import { TaskService } from './tasks.service';
+import { Task, TaskStatus } from './schema/task.schema';
 
 @Controller('tasks')
 export class TaskController {
-  constructor(
-    @InjectModel(Task.name) private readonly taskModel: Model<TaskDocument>,
-  ) {}
+  constructor(private readonly taskService: TaskService) {}
 
-  // Create a new task
   @Post()
   async create(
-    @Body() createTaskDto: Omit<Task, '_id' | 'createdAt' | 'updatedAt'>,
+    @Body('username') username: string,
+    @Body('title') title: string,
+    @Body('description') description?: string,
+  ): Promise<Task> {
+    return await this.taskService.create(username, title, description);
+  }
+
+  @Get('/getPostsByUsername')
+  async getPostsByUsername(
+    @Query('username') username: string,
+  ): Promise<Task[]> {
+    return await this.taskService.findPostsByUsername(username);
+  }
+
+  @Get('/getTasksByStatusAndUsername')
+  async getTasksByStatusAndUsername(
+    @Query('username') username: string,
+    @Query('status') status: string,
+    @Query('taskIds') taskIds?: string,
   ) {
-    const createdTask = new this.taskModel(createTaskDto);
-    return await createdTask.save();
+    if (!Object.values(TaskStatus).includes(status as TaskStatus)) {
+      throw new BadRequestException('Invalid status');
+    }
+
+    const taskIdsArray = taskIds
+      ? taskIds.split(',').map((id) => parseInt(id, 10))
+      : [];
+
+    return await this.taskService.findTasksByStatusAndUsername(
+      status as TaskStatus,
+      username,
+      taskIdsArray,
+    );
   }
 
-  // Get all tasks
-  @Get()
-  async findAll() {
-    return await this.taskModel.find().exec();
-  }
+  // @Get('/getTaskByid')
+  // async getTaskByUsernameAndTaskId(
+  //   @Query('username') username: string,
+  //   @Query('id') taskIds?: string,
+  // ) {
+  //   return await this.taskService.findTaskByUsernameAndTaskId(
+  //     username,
+  //     taskIds,
+  //   );
+  // }
 
-  // Get a single task by ID
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.taskModel.findById(id).exec();
-  }
-
-  // Update a task by ID
-  @Put(':id')
-  async update(
-    @Param('id') id: string,
-    @Body()
-    updateTaskDto: Partial<Omit<Task, '_id' | 'createdAt' | 'updatedAt'>>,
-  ) {
-    return await this.taskModel
-      .findByIdAndUpdate(id, updateTaskDto, { new: true })
-      .exec();
-  }
-
-  // Delete a task by ID
-  @Delete(':id')
-  async delete(@Param('id') id: string) {
-    return await this.taskModel.findByIdAndDelete(id).exec();
+  @Patch('/:id/update-status')
+  async updateStatus(@Param('id') id: string): Promise<Task> {
+    return this.taskService.updateStatusToPending(id);
   }
 }

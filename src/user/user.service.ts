@@ -5,7 +5,6 @@ import { UserModel } from './schema/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { log } from 'console';
 
 @Injectable()
 export class UsersService {

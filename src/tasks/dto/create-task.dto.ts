@@ -3,6 +3,9 @@ import { TaskStatus } from '../schema/task.schema';
 
 export class CreateTaskDto {
   @IsString()
+  username: string;
+
+  @IsString()
   title: string;
 
   @IsOptional()
